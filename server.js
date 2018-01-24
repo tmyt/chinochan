@@ -50,7 +50,7 @@ vtable['*add'] = async (uid, args) => {
     return '金額が入力されていませんが…';
   }
   wallet.balance += parsed;
-  wallet.transactions.add({action: 'add', amount: parsed, created_at: Date.now()});
+  wallet.transactions.push({action: 'add', amount: parsed, created_at: Date.now()});
   await saveJson(uid, wallet);
   return `${parsed.toLocaleString()}円受け取りました。のこり${wallet.balance.toLocaleString()}円です。`;
 
@@ -65,7 +65,7 @@ vtable['*pay'] = async (uid, args) => {
     return `お金が足りませんよ…のこり${wallet.balance.toLocaleString()}円しかありません…`;
   }
   wallet.balance -= parsed;
-  wallet.transactions.add({action: 'pay', amount: parsed, created_at: Date.now()});
+  wallet.transactions.push({action: 'pay', amount: parsed, created_at: Date.now()});
   await saveJson(uid, wallet);
   return `${parsed.toLocaleString()}円ですね。のこり${wallet.balance.toLocaleString()}円です。`;
 };
