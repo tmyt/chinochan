@@ -24,7 +24,7 @@ function loadJson(uid){
   });
 }
 
-function saveJson(data){
+function saveJson(uid, data){
   return new Promise(resolve => {
     fs.writeFile(path.join(DataPath, `${uid}.json`), JSON.stringify(data), (err, data) => {
       resolve(null);
