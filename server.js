@@ -38,6 +38,23 @@ function parsePayment(arg){
   return (ma && ma[1]) ? (ma[1].replace(',', '') | 0) : null;
 }
 
+function translateCommand(cmd, args){
+  if(cmd !== `<@${client.user.id}>`){
+    return cmd;
+  }
+  if(args.length === 0){
+    return '*bal';
+  }else{
+    if(args[0] === '友達になって'){
+      return '*make_friend';
+    }else if(args[0].startsWith('+')){
+      return '*add';
+    }else{
+      return '*pay';
+    }
+  }
+}
+
 const vtable = {};
 vtable['*bal'] = async (uid, args) => {
   const wallet = await loadJson(uid);
@@ -77,30 +94,23 @@ vtable['*total'] = async(uid) => {
   }, 0);
   return `これまで${amount}円つかったみたいです。ありがとうございます。`;
 };
+vtable['*make_friend'] = async(author) => {
+  await author.addFriend();
+  return 'しかたありませんね、わかりました。';
+};
 
 client.on('ready', () => {
   console.log(`bot started. ${client.user.id}`);
 });
  
 client.on('message', async (message) => {
-  let {cmd, args} = breakCommand(message.content);
+  const {cmd, args} = breakCommand(message.content);
   const uid = message.author.id;
+  const translated = translateCommand(cmd, args);
   parsePayment(args[0]);
-  // parse @ message
-  if(cmd == `<@${client.user.id}>`){
-    if(args.length === 0){
-      cmd = '*bal';
-    }else{
-      if(args[0].startsWith('+')){
-        cmd = '*add';
-      }else{
-        cmd = '*pay';
-      }
-    }
-  }
   // execute command
-  if(vtable[cmd]){
-    const resp = await vtable[cmd](uid, args);
+  if(vtable[translated]){
+    const resp = await vtable[translated](uid, args);
     if(resp){
       message.reply(resp);
     }
