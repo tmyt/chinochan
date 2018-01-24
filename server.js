@@ -33,7 +33,7 @@ function saveJson(data){
 }
 
 function parsePayment(arg){
-  const re = /^(?:\\|¥)?([0-9,]+)(?:円|(?:えん)?)$/;
+  const re = /^\+?(?:\\|¥)?([0-9,]+)(?:円|(?:えん)?)$/;
   const ma = (arg || '').match(re);
   return (ma && ma[1]) ? (ma[1].replace(',', '') | 0) : null;
 }
@@ -86,7 +86,19 @@ client.on('message', async (message) => {
   let {cmd, args} = breakCommand(message.content);
   const uid = message.author.id;
   parsePayment(args[0]);
-  if(cmd == `<@${client.user.id}>`){ cmd = '*pay' };
+  // parse @ message
+  if(cmd == `<@${client.user.id}>`){
+    if(args.length === 0){
+      cmd = '*bal';
+    }else{
+      if(args[0].startsWith('+')){
+        cmd = '*add';
+      }else{
+        cmd = '*pay';
+      }
+    }
+  }
+  // execute command
   if(vtable[cmd]){
     const resp = await vtable[cmd](uid, args);
     if(resp){
