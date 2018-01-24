@@ -45,9 +45,7 @@ function translateCommand(cmd, args){
   if(args.length === 0){
     return '*bal';
   }else{
-    if(args[0] === '友達になって'){
-      return '*make_friend';
-    }else if(args[0].startsWith('+')){
+    if(args[0].startsWith('+')){
       return '*add';
     }else{
       return '*pay';
@@ -102,11 +100,6 @@ vtable['*help'] = async (uid) => {
        + '  口座に追加します。\n'
        + '*pay 金額\n'
        + '  残高から支払います。';
-};
-vtable['*make_friend'] = async(uid) => {
-  const user = client.fetchUser(uid);
-  await user.addFriend();
-  return 'しかたありませんね、わかりました。';
 };
 
 client.on('ready', () => {
