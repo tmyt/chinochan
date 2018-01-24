@@ -94,6 +94,15 @@ vtable['*total'] = async(uid) => {
   }, 0);
   return `これまで${amount}円つかったみたいです。ありがとうございます。`;
 };
+vtable['*help'] = async (uid) => {
+  return 'ヘルプです。\n'
+       + '*bal\n'
+       + '  残高がみれます。\n'
+       + '*add 金額\n'
+       + '  口座に追加します。\n'
+       + '*pay 金額\n'
+       + '  残高から支払います。';
+};
 vtable['*make_friend'] = async(uid) => {
   const user = client.fetchUser(uid);
   await user.addFriend();
