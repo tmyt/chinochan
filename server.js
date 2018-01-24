@@ -6,7 +6,7 @@ const fs = require('fs')
 const Discord = require('discord.js')
     , client = new Discord.Client();
 
-const DataPath = path.join(process.env.DATA_PATH || __dirname, 'wallet.json');
+const DataPath = path.join(process.env.DATA_PATH || __dirname);
 
 function breakCommand(str){
   const commands = str.split(/\s+/);
@@ -16,17 +16,17 @@ function breakCommand(str){
   };
 }
 
-function loadJson(){
+function loadJson(uid){
   return new Promise(resolve => {
-    fs.readFile(DataPath, 'utf8', (err, data) => {
-      resolve(err ? {} : JSON.parse(data));
+    fs.readFile(path.join(DataPath, `${uid}.json`), 'utf8', (err, data) => {
+      resolve(err ? {balance: 0, transactions: []} : JSON.parse(data));
     });
   });
 }
 
 function saveJson(data){
   return new Promise(resolve => {
-    fs.writeFile(DataPath, JSON.stringify(data), (err, data) => {
+    fs.writeFile(path.join(DataPath, `${uid}.json`), JSON.stringify(data), (err, data) => {
       resolve(null);
     });
   });
@@ -40,44 +40,53 @@ function parsePayment(arg){
 
 const vtable = {};
 vtable['*bal'] = async (uid, args) => {
-  const wallet = await loadJson();
-  return `のこり、${(wallet[uid] || 0).toLocaleString()}円です`;
+  const wallet = await loadJson(uid);
+  return `のこり、${(wallet.balance || 0).toLocaleString()}円です`;
 };
 vtable['*add'] = async (uid, args) => {
-  const wallet = await loadJson();
-  let balance = wallet[uid] || 0;
+  const wallet = await loadJson(uid);
   const parsed = parsePayment(args[0]);
   if(!parsed){
     return '金額が入力されていませんが…';
   }
-  wallet[uid] = (balance += parsed);
-  await saveJson(wallet);
-  return `${parsed.toLocaleString()}円受け取りました。のこり${balance.toLocaleString()}円です。`;
+  wallet.balance += parsed;
+  wallet.transactions.add({action: 'add', amount: parsed, created_at: Date.now()});
+  await saveJson(uid, wallet);
+  return `${parsed.toLocaleString()}円受け取りました。のこり${wallet.balance.toLocaleString()}円です。`;
 
 };
 vtable['*pay'] = async (uid, args) => {
-  const wallet = await loadJson();
+  const wallet = await loadJson(uid);
   const parsed = parsePayment(args[0]);
-  let balance = wallet[uid] || 0;
   if(!parsed){
     return '金額が入力されていませんが…';
   }
-  if(balance < parsed){
-    return `お金が足りませんよ…のこり${balance.toLocaleString()}円しかありません…`;
+  if(wallet.balance < parsed){
+    return `お金が足りませんよ…のこり${wallet.balance.toLocaleString()}円しかありません…`;
   }
-  wallet[uid] = balance -= parsed;
-  await saveJson(wallet);
-  return `${parsed.toLocaleString()}円ですね。のこり${balance.toLocaleString()}円です。`;
+  wallet.balance -= parsed;
+  wallet.transactions.add({action: 'pay', amount: parsed, created_at: Date.now()});
+  await saveJson(uid, wallet);
+  return `${parsed.toLocaleString()}円ですね。のこり${wallet.balance.toLocaleString()}円です。`;
+};
+vtable['*total'] = async(uid) => {
+  const wallet = await loadJson(uid);
+  let amount = wallet.transactions.reduce((acc, cur) => {
+    if(cur.action !== 'pay') return acc;
+    return acc + cur.amount;
+  }, 0);
+  return `これまで${amount}円つかったみたいです。ありがとうございます。`;
 };
 
 client.on('ready', () => {
-  console.log('I am ready!');
+  console.log(`bot started. ${client.user.id}`);
 });
  
 client.on('message', async (message) => {
-  const {cmd, args} = breakCommand(message.content);
+  let {cmd, args} = breakCommand(message.content);
   const uid = message.author.id;
   parsePayment(args[0]);
+  if(cmd == `<@${client.user.id}>`){ cmd = '*pay' };
   if(vtable[cmd]){
     const resp = await vtable[cmd](uid, args);
     if(resp){
