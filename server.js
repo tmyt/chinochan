@@ -35,7 +35,7 @@ function saveJson(uid, data){
 function parsePayment(arg){
   const re = /^\+?(?:\\|¥)?([0-9,]+)(?:円|(?:えん)?)$/;
   const ma = (arg || '').match(re);
-  return (ma && ma[1]) ? (ma[1].replace(',', '') | 0) : null;
+  return (ma && ma[1]) ? (ma[1].replace(/,/g, '') | 0) : null;
 }
 
 function translateCommand(cmd, args){
