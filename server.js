@@ -116,10 +116,10 @@ vtable['*transfer'] = async (uid, args) => {
   if(!target || !target[1]){
     return '送金先が見つかりません…';
   }
+  const targetUid = target[1];
   if(uid === targetUid){
     return '送金先が同じですよ…';
   }
-  const targetUid = target[1];
   const targetWallet = await loadJson(targetUid);
   wallet.balance -= parsed;
   wallet.transactions.push({action: 'transfer', amount: parsed, created_at: Date.now()});
