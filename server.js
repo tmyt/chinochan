@@ -45,7 +45,9 @@ function translateCommand(cmd, args){
   if(args.length === 0){
     return '*bal';
   }else{
-    if(args[0].startsWith('+')){
+    if(args[0].match(/<@([0-9]*?)>/)){
+      return '*transfer';
+    }else if(args[0].startsWith('+')){
       return '*add';
     }else{
       return '*pay';
@@ -101,6 +103,29 @@ vtable['*help'] = async (uid) => {
        + '*pay 金額\n'
        + '  残高から支払います。';
 };
+vtable['*transfer'] = async (uid, args) => {
+  const wallet = await loadJson(uid);
+  const parsed = parsePayment(args[1]);
+  if(!parsed){
+    return '金額が入力されていませんが…';
+  }
+  if(wallet.balance < parsed){
+    return `お金が足りませんよ…のこり${wallet.balance.toLocaleString()}円しかありません…`;
+  }
+  const target = args[0].match(/<@([0-9]*?)>/);
+  if(!target || !target[1]){
+    return '送金先が見つかりません…';
+  }
+  const targetUid = target[1];
+  const targetWallet = await loadJson(targetUid);
+  wallet.balance -= parsed;
+  wallet.transaction.push({action: 'transfer', amount: parsed, created_at: Date.now()});
+  targetWallet.balance -= parsed;
+  targetWallet.transaction.push({action: 'receive', amount: parsed, created_at: Date.now()});
+  await saveJson(uid, wallet);
+  await saveJson(targetUid, targetWallet);
+  return `${args[0]}へ${parsed.toLocaleString()}円送金しました。のこり${wallet.balance.toLocaleString()}円です。`;
+};
 
 client.on('ready', () => {
   console.log(`bot started. ${client.user.id}`);
@@ -110,7 +135,6 @@ client.on('message', async (message) => {
   const {cmd, args} = breakCommand(message.content);
   const uid = message.author.id;
   const translated = translateCommand(cmd, args);
-  parsePayment(args[0]);
   // execute command
   if(vtable[translated]){
     const resp = await vtable[translated](uid, args);
