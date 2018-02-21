@@ -119,9 +119,9 @@ vtable['*transfer'] = async (uid, args) => {
   const targetUid = target[1];
   const targetWallet = await loadJson(targetUid);
   wallet.balance -= parsed;
-  wallet.transaction.push({action: 'transfer', amount: parsed, created_at: Date.now()});
-  targetWallet.balance -= parsed;
-  targetWallet.transaction.push({action: 'receive', amount: parsed, created_at: Date.now()});
+  wallet.transactions.push({action: 'transfer', amount: parsed, created_at: Date.now()});
+  targetWallet.balance += parsed;
+  targetWallet.transactions.push({action: 'receive', amount: parsed, created_at: Date.now()});
   await saveJson(uid, wallet);
   await saveJson(targetUid, targetWallet);
   return `${args[0]}へ${parsed.toLocaleString()}円送金しました。のこり${wallet.balance.toLocaleString()}円です。`;
