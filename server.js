@@ -45,7 +45,7 @@ function translateCommand(cmd, args){
   if(args.length === 0){
     return '*bal';
   }else{
-    if(args[0].match(/<@([0-9]*?)>/)){
+    if(args[0].match(/<@([!0-9]*?)>/)){
       return '*transfer';
     }else if(args[0].startsWith('+')){
       return '*add';
@@ -112,7 +112,7 @@ vtable['*transfer'] = async (uid, args) => {
   if(wallet.balance < parsed){
     return `お金が足りませんよ…のこり${wallet.balance.toLocaleString()}円しかありません…`;
   }
-  const target = args[0].match(/<@([0-9]*?)>/);
+  const target = args[0].match(/<@(![0-9]*?)>/);
   if(!target || !target[1]){
     return '送金先が見つかりません…';
   }
