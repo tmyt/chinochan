@@ -138,14 +138,16 @@ client.on('message', async (message) => {
   const {cmd, args} = breakCommand(message.content);
   const uid = message.author.id;
   const translated = translateCommand(cmd, args);
+  console.log(`message received: ${message.content}`);
+  console.log(`cmd: ${cmd}, args: ${args.join(' ')}, uid: ${uid}, translated: ${translated}`);
   // execute command
   if(vtable[translated]){
     const resp = await vtable[translated](uid, args);
+    console.log(`resp: ${resp}`);
     if(resp){
       message.reply(resp);
+      console.log('status: sent');
     }
-    console.log(`input: ${message}`);
-    console.log(`output: ${resp}`);
   }
 });
 
