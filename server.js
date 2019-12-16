@@ -39,7 +39,7 @@ function parsePayment(arg){
 }
 
 function translateCommand(cmd, args){
-  if(cmd !== `<@${client.user.id}>`){
+  if(!cmd.match(`^<@!?${client.user.id}>$`)){
     return cmd;
   }
   if(args.length === 0){
