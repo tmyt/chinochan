@@ -138,6 +138,10 @@ client.on('message', async (message) => {
   const {cmd, args} = breakCommand(message.content);
   const uid = message.author.id;
   const translated = translateCommand(cmd, args);
+  if(uid === client.user.id){
+    console.log('status: filtered');
+    return;
+  }
   console.log(`message received: ${message.content}`);
   console.log(`cmd: ${cmd}, args: ${args.join(' ')}, uid: ${uid}, translated: ${translated}`);
   // execute command
